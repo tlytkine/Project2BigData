@@ -6,6 +6,10 @@ library(ggplot2)
 library(base)
 library(data.table)
 library(plyr)
+library(stringr)
+library(cluster)
+
+# Preparing the data 
 
 # load data from csv
 BlackFriday <- read.csv("BlackFriday.csv",stringsAsFactors = FALSE, header = TRUE, na.strings = c ('NA',''))
@@ -32,73 +36,334 @@ summary(bf)
 # Describe 
 describe(bf)
 
+bf
+# Make gender numeric 
+# 0 = female, male = 1
+bf[bf=="F"] <- 0
+bf[bf=="M"] <- 1
+bf
+
+# Change gender to numeric 
+bf$Gender <- as.numeric(as.character(bf$Gender))
+bf$Age
+str(bf)
+
+# Make age numeric
+# Copy bf to modify it 
+bfCopy <- bf
+
+# Check unique values of Age 
+unique(bfCopy$Age)
+
+# Get number of rows in data frame 
+print(nrow(bfCopy))
+
+# Set age range to random values 
+for(row in 1:nrow(bfCopy)){
+  # Assuming the youngest age people shop during BlackFriday is 1
+  if(bfCopy[row,"Age"]=="0-17"){ # Generation Z 
+    bfCopy[row,"Age"] <- floor(runif(1,min=13,max=17))
+  } else if(bfCopy[row,"Age"]=="18-25"){ # Millenials
+    bfCopy[row,"Age"] <- floor(runif(1,min=18,max=25))
+  } else if(bfCopy[row,"Age"]=="26-35"){ # Millenials
+    bfCopy[row,"Age"] <- floor(runif(1,min=26,max=35))
+  } else if(bfCopy[row,"Age"]=="36-45"){ # Generation X 
+    bfCopy[row,"Age"] <- floor(runif(1,min=36,max=45))
+  } else if(bfCopy[row,"Age"]=="46-50"){ # Generation X 
+    bfCopy[row,"Age"] <- floor(runif(1,min=46,max=50))
+  } else if(bfCopy[row,"Age"]=="51-55"){ # Baby Boomers 
+    bfCopy[row,"Age"] <- floor(runif(1,min=51,max=55))
+  } else if(bfCopy[row,"Age"]=="55+"){ # Baby Boomers 
+    bfCopy[row,"Age"] <- floor(runif(1,min=56,max=80))
+  }
+  print(row)
+}
+
+bf <- bfCopy
+
+bf
+# Check unique ages
+unique(bf$Age)
+
 # Structure of bf 
 str(bf)
+
+# Change age to numeric 
+bf$Age <- as.numeric(as.character(bf$Age))
+bf$Age
+
+
+# Getting rid of first character of Product_ID
+for(row in 1:nrow(bf)){
+  bf[row,"Product_ID"] <- substring(bf[row,"Product_ID"],2,nchar(bf[row,"Product_ID"]))
+  print(row)
+}
+
+bf$Product_ID
+str(bf)
+
+# Change Product_ID to numeric 
+bf$Product_ID <- as.numeric(as.character(bf$Product_ID))
+bf$Product_ID
+str(bf)
+
+
+
+
+# Change city_category to numeric, A = 1, B = 2, C = 3 
+unique(bf$City_Category)
+
+bf$City_Category
+
+bf$City_Category[bf$City_Category=="A"] <- 1
+bf$City_Category[bf$City_Category=="B"] <- 2
+bf$City_Category[bf$City_Category=="C"] <- 3
+
+bf$City_Category <- as.numeric(as.character(bf$City_Category))
+
+str(bf)
+
+# Change Stay_in_current_city_years to numeric
+unique(bf$Stay_In_Current_City_Years)
+
+str(bf)
+ # Change 4+ to random number between 4 and 80 (oldest person is 80)
+for(row in 1:nrow(bf)){
+  if(bf[row,"Stay_In_Current_City_Years"]=="4+"){ 
+    bf[row,"Stay_In_Current_City_Years"] <- floor(runif(1,min=4,max=80))
+  } 
+  print(row)
+}
+bf$Stay_In_Current_City_Years
+unique(bf$Stay_In_Current_City_Years)
+bf$Stay_In_Current_City_Years <- as.numeric(as.character(bf$Stay_In_Current_City_Years))
+str(bf)
+
+
+
+# Lecture 4 R Functions Experimentation
+summary(bf)
+psych::describe(bf,na.rm=TRUE)
+str(bf)
+
+
+
 
 
 # Cluster Analysis
 #  Check which values are numeric 
 sapply(bf,is.numeric) # User_ID, Occupation, Product Category 1, Product Category 2, Product Category 3, Purchase, Marital Status are numeric
+# All values are now numeric 
 
-# Make table of only numeric values 
-bfn <- dplyr::select(bf,User_ID,Occupation,Product_Category_1,Product_Category_2,Product_Category_3,Purchase,Marital_Status)
+# Find descriptive clusters of individuals in the data set 
+# Each subset should contain UserID, gender, age 
+
+
+
+
+bfOccupation <- dplyr::select(bf,User_ID,Gender,Age,Occupation,Purchase)
+
+bfMaritalStatus <- dplyr::select(bf,User_ID,Gender,Age,Marital_Status,Purchase)
+
+bfProductID <- dplyr::select(bf,User_ID,Gender,Age,Product_ID,Purchase)
+
+
+
+# Try clustering on entire data set 
+bfn <- bf
+
 
 # Take out na's 
+# Entire data set 
 bfn <- na.omit(bfn)
-
-# Check out bfn 
-bfn
+# Occupation
+bfOccupation <- na.omit(bfOccupation)
+# Martial Status
+bfMaritalStatus <- na.omit(bfMaritalStatus)
+# Product ID 
+bfProductID <- na.omit(bfProductID)
+# City Category 
+bfCityCategory <- na.omit(bfCityCategory)
 
 # Scale the data 
 bfn.scaled <- scale(bfn)
+bfOccupation.scaled <- scale(bfOccupation)
+bfMaritalStatus.scaled <- scale(bfMaritalStatus)
+bfProductID.scaled <- scale(bfProductID)
+bfCityCategory.scaled <- scale(bfCityCategory)
 
 # Min-Max Normalization
 normalize <- function(x) {(((x-min(x))/max(x)-min(x)))}
-
 # Apply normalize function 
 normalize(bfn.scaled)
+normalize(bfOccupation.scaled)
+normalize(bfMaritalStatus.scaled)
+normalize(bfProductID.scaled)
+normalize(bfCityCategory.scaled)
 
 #  Screen for Outliers 
+# Use outliers package or mvoutlier for multivariate outliers
+# Use clustering technique robust in presence of outliers 
 
-#  Calculate Distances (Classical methods for distance measures are Euclidean and Manhattan Distances)
-#   - Select a distance measure: Euclidean, Manhattan, Minkowski, and so on 
-dist(bfn[1:100,])
+# TO DO 
 
-#  Select a Clustering Algorithm - you will use K-Means and one other
-#  Obtain one or more cluster solutions 
 
-# k-means clustering of size 2 
-k1 <- kmeans(bfn.scaled,centers=2,nstart = 25)
-k1
+#  Calculate Distances 
+dist(bfn.scaled[1:00,])
+     
+     
+#  Select a Clustering Algorithm 
+# Initial k should be sqrt(n) (n is number of points)
+numRows <- nrow(bfn)
+initialK <- sqrt(numRows)
+
+# k-means clustering of size 3 
+# Whole data set 
+k3Whole <- kmeans(bfn.scaled,centers=3,nstart = 25)
+# Occupation
+k3Occupation <- kmeans(bfOccupation.scaled,centers=3,nstart = 25)
+# Marital Status 
+k3MaritalStatus <- kmeans(bfMaritalStatus.scaled,centers=3,nstart = 25)
+# ProductID 
+k3ProductID <- kmeans(bfProductID.scaled,centers=3,nstart = 25)
+
+
+
+# k-means clustering of size 5
+# Whole data set 
+k5Whole <- kmeans(bfn.scaled,centers=5,nstart = 25)
+# Occupation
+k5Occupation <- kmeans(bfOccupation.scaled,centers=5,nstart = 25)
+# Marital Status 
+k5MaritalStatus <- kmeans(bfMaritalStatus.scaled,centers=5,nstart = 25)
+# ProductID 
+k5ProductID <- kmeans(bfProductID.scaled,centers=5,nstart = 25)
+
+
+
+# k-means clustering of size 7 
+# Whole data set 
+k7Whole <- kmeans(bfn.scaled,centers=7,nstart = 25)
+# Occupation
+k7Occupation <- kmeans(bfOccupation.scaled,centers=7,nstart = 25)
+# Marital Status 
+k7MaritalStatus <- kmeans(bfMaritalStatus.scaled,centers=7,nstart = 25)
+# ProductID 
+k7ProductID <- kmeans(bfProductID.scaled,centers=7,nstart = 25)
+
 
 # iClust 
-iclust(bfn.scaled)
+# Whole data set 
+iclust(bfn.scaled,nclusters=3)
+iclust(bfn.scaled,nclusters=5)
+iclust(bfn.scaled,nclusters=7)
+# Occupation
+iclust(bfOccupation.scaled,nclusters=3)
+iclust(bfOccupation.scaled,nclusters=5)
+iclust(bfOccupation.scaled,nclusters=7)
+# Marital Status 
+iclust(bfMaritalStatus.scaled,nclusters=3)
+iclust(bfMaritalStatus.scaled,nclusters=5)
+iclust(bfMaritalStatus.scaled,nclusters=7)
+# ProductID 
+iclust(bfProductID.scaled,nclusters=3)
+iclust(bfProductID.scaled,nclusters=5)
+iclust(bfProductID.scaled,nclusters=7)
+
+
+k3Whole$totss
+k3Whole$centers
+k3Whole$iter
+
+str(k3Whole)
+
+# Try hclust 
+hc <- hclust(dist(bfProductID[1:100,]),"ave")
+plot(hc)
+
+wssplot <- function(data,nc=15,seed=1234)
+{
+  wss <- (nrow(data)-2)*sum(apply(data,2,var))
+  for(i in 2:nc)
+  {
+    set.seed(seed)
+    wss[i] <- sum(kmeans(data,centers=i)$withinss)
+  }
+  plot(1:nc, wss, type="b",
+       xlab="Number of Clusters",
+       ylab="Within groups sum of squares")
+}
+
+
+#  Try wssplot 
+# A bend in the graph can suggest the appropriate number of clusters 
+# Bends 
+wssplot(bfn,nc=3,seed=1234)
+# nc = 3, 2 clusters 
+wssplot(bfn,nc=5,seed=1234)
+# nc = 5, 3 clusters 
+wssplot(bfn,nc=7,seed=1234)
+# nc = 7, 4 clusters 
+
+
 
 #  Determine # Clusters present 
-#   - Tough problem, no generic solutions 
-#   - Domain knowledge helpful
-#   - Use the NbClust package which has 30 indices 
+
 
 
 #  Obtain final cluster solution
-#   - Perform a final clustering with the best set of parameters 
-#   - There is NO optimal solution, usually 
+
+# K-means clustering <- sum of squares distance should be minimized 
+# total within-cluster sum of squares measures the compactness (i.e. goodness)
+# of the clustering and we want it to be as small as possible 
+
 
 #  Visualize the results 
-#   - Hierarchical clustering usually displayed as a dendrodram
-#   - Partitioning clustering usually displayed as a bivariate cluster plot
-#   - You may have to select pairs of variables to plot (latter case)
+
 
 #  Interpret the clusters 
-#   - Examining the clusters, find what is common and what is not 
-#   - Requires domain knowledge 
-#   - Obtain summary statistics 
-#   - If categorical variables, look at modes and/or category distributions
+
 
 #  Validate the clusters 
-#   - Are these groupings represented in the real world in some way?
-#   - If a different clustering method was used, would the same clusters be obtained?
-#   - Try the fpc, clv, and clValid packages 
+
+
+
+
+str(bf)
+
+
+clusplot(pam(x=test30[1:100,],k=3,metric="euclidean",stand=FALSE))
+
+# Principal function
+b2 <- principal(bf,nfactors=2,rotate="none")
+b2
+# Root mean square = 0.08 (Measure of difference 
+# between observed and expected values)
+
+# Scree plot: Gettting an idea of components 
+bfScree <- scree(bf,factors=TRUE)
+bfScree
+
+# dplyr::select(bf,Gender,Purchase)
+# split(bf,bf$Gender)
+
+# Total number of rows 
+sumRows <- nrow(bf)
+
+# Get sum of all purchases in table 
+sum(bf$Purchase)
+# Sum is 191564035
+# Get average purchases 
+mean(bf$Purchase)
+# 11661 is average purchase 
+
+
+# Get average age 
+mean(bf$Age)
+# Average age is 34.08769
+
+
+str(bf)
 
 
 # Divide into training and testing sets 
@@ -121,6 +386,38 @@ test30  <- dplyr::anti_join(bf, train70, by = 'id')
 str(train70)
 str(test30)
 
+
+str(train50)
+str(test50)
+
+train50$User_ID <- as.factor(train50$User_ID)
+train50$Product_ID <-
+
+str(train60)
+str(test40)
+
+str(train70)
+str(test30)
+
+
+# Plot Gender Vs. Purchase 
+
+
+# Plot Age Vs. Purchase 
+
+# Plot Occupation vs. Purchase 
+
+# Plot City_Category vs. Purchase 
+
+# Plot Stay_In_Current_City_Years vs. Purchase 
+
+# Plot Marital_Status vs. Purchase 
+
+# Plot Product_Category_1 vs. Purchase 
+
+# Plot Product_Category_2 vs. Purchase 
+
+# Plot Product_Category_3 vs. Purchase 
 
 
 

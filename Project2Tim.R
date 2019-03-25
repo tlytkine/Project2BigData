@@ -1,3 +1,5 @@
+install.packages("outliers")
+
 # Load libraries 
 library(readxl)
 library(dplyr)
@@ -9,6 +11,8 @@ library(plyr)
 library(stringr)
 library(cluster)
 library(class)
+library(outliers)
+
 
 # Preparing the data 
 # load data from csv
@@ -234,8 +238,19 @@ normalize(bfProductID.scaled)
 #  Screen for Outliers 
 # Use outliers package or mvoutlier for multivariate outliers
 # Use clustering technique robust in presence of outliers 
+# rm.outlier removes outliers with the biggest difference away from the mean value
 
-# TO DO 
+# Stay_In_Current_City_Years
+out1<-outlier(bfn.scaled[row, "Stay_In_Current_City_Years"], opposite = FALSE, logical=FALSE)
+rm.outlier(bfn.scaled[row, "Stay_In_Current_City_Years"], fill = FALSE, median = FALSE, opposite = FALSE)
+# prints what was removed
+out1
+
+# Purchase
+out2<-outlier(bfn.scaled[row, "Purchase"], opposite = FALSE, logical=FALSE)
+rm.outlier(bfn.scaled[row, "Purchase"], fill = FALSE, median = FALSE, opposite = FALSE)
+# prints what was removed
+out2
 
 
 #  Calculate Distances 

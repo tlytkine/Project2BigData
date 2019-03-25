@@ -51,6 +51,9 @@ d1
 plot1 <- ggplot(BF_Distinct, aes(x=Gender, fill= Marital_Status)) + geom_bar(position = "dodge") + ggtitle("") +  labs(x="Gender",y="No. of distinct Sales") + annotate(geom = "text", x = 0.775, y = 619, label = "719")   + annotate(geom = "text", x = 1.225, y = 847, label = "947") + annotate(geom = "text", x = 1.775, y = 1655, label = "1755") + annotate(geom = "text", x = 2.225, y = 2370, label = "2470") + scale_fill_manual(values=c("blue","limegreen")) 
 d1; plot1
 
-# Age group, occupation and marital status
+# 1) Age group, occupation and marital status
 plot2 <- ggplot(BF_Distinct,aes(x=Occupation, fill=Age))+geom_bar()+facet_grid(Gender~Marital_Status)
 plot2
+
+plot3 <- ggplot(BF_Distinct,aes(x=User_ID, fill=Marital_Status))+geom_bar()+facet_grid(Gender~Marital_Status)
+plot3

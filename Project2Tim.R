@@ -396,17 +396,37 @@ wssplot(train70.scaled,nc=7,seed=1234)
 
 str(bf)
 
+
+bf
+
+# Scree plot: Gettting an idea of components 
+bfScree <- scree(bfn.scaled,factors=TRUE)
+bfScree
+
+
 clusplot(pam(x=test30[1:100,],k=3,metric="euclidean",stand=FALSE))
 
 # Principal function
-b2 <- principal(bf.scaled,nfactors=2,rotate="none")
-b2
+bf.pca <- principal(bfn.scaled, nfactors = 2, rotate = "none")
+bf.pca
+
+colnames(bfn.scaled)
+bf.prcomp <- prcomp(bfn.scaled[,c(1:12)], center = T, scale. = T)
+bf.prcomp
+prop_var <- var(bf.pca$values)
+
+prop_var_explained <- prop_var/sum(bf.pca$values)
+# scree plot to access components or factors which explains the most of variability in the data
+plot(prop_var_explained, xlab = "Principal Component", 
+     ylab = "Proportion of Variance Explained",
+     type = "b")
+
+plot(cumsum(prop_var_explained), xlab = "Principal Component",
+     ylab = "Cumulative Proportion of Variance Explained",
+     type = "b")
+
 # Root mean square = 0.08 (Measure of difference 
 # between observed and expected values)
-
-# Scree plot: Gettting an idea of components 
-bfScree <- scree(bf,factors=TRUE)
-bfScree
 
 # dplyr::select(bf,Gender,Purchase)
 # split(bf,bf$Gender)

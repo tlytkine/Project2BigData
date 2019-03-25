@@ -359,3 +359,242 @@ psych::describe(USArrests,na.rm=TRUE)
 BlackFriday <- read_excel("BlackFriday.xlsx")
 black_friday
 
+
+# Stuff from Exploratory Data Analysis Page 
+
+train50$User_ID <- as.factor(train50$User_ID)
+train50$Product_ID <- as.factor(train50$Product_ID)
+train50$Marital_Status <- as.factor(ifelse(train50$Marital_Status == 1, 'Married', 'Single'))
+train50$Age <- as.factor(train50$Age)
+train50$Gender <- as.factor(ifelse(train50$Gender==0, 'Male', 'Female'))
+train50$Occupation <- as.factor(train50$Occupation)
+train50$City_Category <- as.factor(train50$City_Category)
+train50$Stay_In_Current_City_Years <- as.factor(train50$Stay_In_Current_City_Years)
+
+test50$User_ID <- as.factor(test50$User_ID)
+test50$Product_ID <- as.factor(test50$Product_ID)
+test50$Marital_Status <- as.factor(ifelse(test50$Marital_Status == 1, 'Married', 'Single'))
+test50$Age <- as.factor(test50$Age)
+test50$Gender <- as.factor(ifelse(test50$Gender==0, 'Male', 'Female'))
+test50$Occupation <- as.factor(test50$Occupation)
+test50$City_Category <- as.factor(test50$City_Category)
+test50$Stay_In_Current_City_Years <- as.factor(test50$Stay_In_Current_City_Years)
+
+#str(train50) 
+#str(test50)
+
+EDA_Distinct <- distinct(train50, User_ID, Age, Gender, Marital_Status, Occupation, City_Category, Stay_In_Current_City_Years)
+#str(EDA_Distinct)
+head(EDA_Distinct)
+head(train50$User_ID,40)
+head(test50$User_ID,40)
+
+userIDCount <- as.data.frame(table(train50$User_ID))
+names(userIDCount) <- c("User_ID","User_Purchase_Count")
+head(userIDCount)
+
+train50 <- merge(x = test50, y = userIDCount, by = "User_ID", all.x = TRUE)
+str(train50)
+
+test50 <- merge(x = test50, y = userIDCount, by = "User_ID", all.x = TRUE)
+rm(userIDCount)
+'%!in%' <- function(x,y)!('%in%'(x,y))
+test50[is.na(test50$User_Purchase_Count), "User_Purchase_Count"] <- 1
+class(test50$User_Purchase_Count)
+str(test50)
+
+test50$User_Purchase_Count <- as.integer(test50$User_Purchase_Count)
+EDA_Distinct <- distinct(train50, User_ID, Age, Gender, Marital_Status, Occupation, City_Category, Stay_In_Current_City_Years, User_Purchase_Count)
+d1 <- summary(EDA_Distinct$User_Purchase_Count)
+
+p1 <- ggplot(EDA_Distinct, aes(x=User_Purchase_Count)) +geom_density(fill="red", col="black", alpha=0.80) + annotate(geom = "text", x = 6, y = 0.0125, label = "Min")  + annotate(geom = "text", x = 24, y = 0.013, label = "1st Qu.") + annotate(geom = "text", x = 50, y = 0.0125, label = "Median") + annotate(geom = "text", x = 90, y = 0.013, label = "Mean") + annotate(geom = "text", x = 112, y = 0.0125, label = "3rd Qu.") + annotate(geom = "text", x = 1015, y = 0.0125, label = "Max") + geom_vline(xintercept = c(6, 26, 54, 93.37, 117, 1026), size = 0.2, col = 'black') #+ lims(x = )
+
+p1 
+
+p2 <- ggplot(EDA_Distinct, aes(x=User_Purchase_Count)) +geom_histogram(fill="red", col="black", alpha=0.80) 
+
+p2
+
+p3 <- ggplot(EDA_Distinct,aes(x= Age,y=User_Purchase_Count, fill=Age)) + geom_boxplot() + facet_grid(Gender~Marital_Status) + labs(x="Age",y="Customer Purchase Count")
+
+p3 
+
+p4 <- ggplot(EDA_Distinct,aes(x= Occupation,y=User_Purchase_Count, fill=Occupation)) + geom_boxplot() + facet_grid(Gender~Marital_Status) + labs(x="Occupation",y="Customer Purchase Count")
+
+p4
+
+# p5 <- ggplot(EDA_Distinct,aes(x=Age,y=User_Purchase_Count,fill=Stay_In_Current_City_Years))+geom_boxplot()+facet_grid(City_Category~ Stay_In_Current_City_Years) + labs(x="Age",y="Customer Purchase Count")
+# p5
+
+# p5i <- ggplot(EDA_Distinct,aes(x=Age,y=User_Purchase_Count,fill=Stay_In_Current_City_Years))+geom_boxplot()+facet_grid( Stay_In_Current_City_Years ~ City_Category) + labs(x="Age",y="Customer Purchase Count")
+# p5i 
+
+p6 <- ggplot(EDA_Distinct,aes(x=Age,y=User_Purchase_Count,fill=Marital_Status))+geom_boxplot()+facet_grid(Gender~City_Category) + scale_fill_manual(values=c("tan4","limegreen"))  + labs(x="Age",y="Customer Purchase Count") + theme(text = element_text(size=5))
+p6
+
+
+train50$Product_ID
+
+
+
+
+test50$Product_ID
+
+
+
+head(train50$Product_ID,15)
+ProductIDCount <- as.data.frame(table(train50$Product_ID))
+names(ProductIDCount) <- c("Product_ID","Product_Sold_Count")
+head(ProductIDCount)
+
+
+train50$Product_ID
+train50 <- merge(x = train50, y = ProductIDCount, by = "Product_ID", all.x = TRUE)
+str(train50)
+d2 <- summary(train50$Product_Sold_Count)
+
+p7 <- ggplot(train50, aes(x="Product_Sold_Count")) +geom_density(fill="red", col="black", alpha=0.80) + annotate(geom = "text", x = 1, y = 0.004, label = "Min")  + annotate(geom = "text", x = 174, y = 0.00385, label = "1st Qu.") + annotate(geom = "text", x = 357, y = 0.004, label = "Median") + annotate(geom = "text", x = 450, y = 0.00385, label = "Mean") + annotate(geom = "text", x = 620, y = 0.004, label = "3rd Qu.") + annotate(geom = "text", x = 1880, y = 0.004, label = "Max") + geom_vline(xintercept = c(1,174,357,450.5,620,1880), size = 0.2, col = 'black') 
+p7
+
+head(ProductIDCount[order(-ProductIDCount$Product_Sold_Count),])
+tail(ProductIDCount[order(-ProductIDCount$Product_Sold_Count),])
+
+test50 <- merge(x = test50, y = ProductIDCount, by = "Product_ID", all.x = TRUE)
+rm(ProductIDCount)
+test50[is.na(test50$User_Purchase_Count), "User_Purchase_Count"] <- 1
+test50$User_Purchase_Count <- as.integer(test50$User_Purchase_Count)
+head(train50$Gender); head(train50$Marital_Status)
+
+d3 <- table(EDA_Distinct$Gender, EDA_Distinct$Marital_Status)
+d3
+
+
+p8 <- ggplot(EDA_Distinct, aes(x=Gender, fill= Marital_Status)) + geom_bar(position = "dodge") + ggtitle("") +  labs(x="Gender",y="No. of distinct Sales") + annotate(geom = "text", x = 0.775, y = 619, label = "719")   + annotate(geom = "text", x = 1.225, y = 847, label = "947") + annotate(geom = "text", x = 1.775, y = 1655, label = "1755") + annotate(geom = "text", x = 2.225, y = 2370, label = "2470") + scale_fill_manual(values=c("tan4","limegreen")) 
+p8
+d3; p8
+
+head(train50, 10)
+d4 <- table(EDA_Distinct$Age)
+d4
+
+d5 <- table(EDA_Distinct$Marital_Status, EDA_Distinct$Gender, EDA_Distinct$Age)
+d5
+
+p10 <- ggplot(EDA_Distinct, aes(x= Age,fill= Gender, col= Marital_Status)) + geom_bar(position = "dodge", size=1.25) +  labs(x="Age Group",y="No. of distinct buyer") + scale_fill_manual(values=c("hotpink", "royalblue")) + scale_color_manual(values=c("tan4","limegreen")) + ggtitle("") 
+p10
+
+
+p11 <- ggplot(EDA_Distinct,aes(x=Age,fill=Marital_Status))+geom_bar(position = "dodge")+facet_grid(Gender~.) + scale_fill_manual(values=c("tan4","limegreen"))
+p11
+
+
+head(train50$Occupation, 10)
+d6 <- table(EDA_Distinct$Occupation)
+d6
+d7 <- table(EDA_Distinct$Gender, EDA_Distinct$Occupation)
+d7
+p12 <- ggplot(EDA_Distinct, aes(x=Occupation, fill=Gender)) + geom_bar( col="black") + ggtitle("") +  labs(x="Occupation",y="No. of distinct people") + scale_fill_manual(values=c("hotpink", "royalblue"))
+p12
+
+d8 <- table(EDA_Distinct$Marital_Status, EDA_Distinct$Occupation)
+
+p13 <- ggplot(EDA_Distinct, aes(x=Occupation, fill=Marital_Status)) + geom_bar( col="black") + ggtitle("") +  labs(x="Occupation",y="No. of distinct people") + scale_fill_manual(values=c("tan4","limegreen"))
+p13
+
+p14 <- ggplot(EDA_Distinct,aes(x=Occupation, fill=Age))+geom_bar()+facet_grid(Gender~Marital_Status)
+p14
+
+head(train50$Stay_In_Current_City_Years, 10); head(train50$City_Category, 10)
+
+d9 <- table(EDA_Distinct$City_Category, EDA_Distinct$Stay_In_Current_City_Years)
+d9
+
+p15 <- ggplot(EDA_Distinct, aes(x=Stay_In_Current_City_Years, fill=City_Category)) + geom_bar( col="black") + ggtitle("") +  labs(x="Stay in Current City (Years)",y="No. of distinct people")
+p15
+
+p16 <- ggplot(EDA_Distinct,aes(City_Category,fill=Age))+geom_bar()
+p16
+
+# p17 <- ggplot(EDA_Distinct,aes(x=Age,fill=Stay_In_Current_City_Years))+geom_bar()+facet_grid(City_Category~ Stay_In_Current_City_Years)
+# p17
+
+p18 <- ggplot(EDA_Distinct,aes(x=Age,fill=Marital_Status))+geom_bar()+facet_grid(Gender~City_Category) + scale_fill_manual(values=c("tan4","limegreen"))
+p18
+
+head(as.factor(train50$Product_Category_1))
+head(as.factor(train50$Product_Category_2))
+head(as.factor(train50$Product_Category_3))
+
+
+train50$Product_Category_1 <- as.factor(train50$Product_Category_1)
+train50$Product_Category_2 <- as.factor(train50$Product_Category_2)
+train50$Product_Category_3 <- as.factor(train50$Product_Category_3)
+
+
+train50$Product_Category_2 <- factor(train50$Product_Category_2, levels=c(levels(train50$Product_Category_2), "0"))
+train50[is.na(train50$Product_Category_2), "Product_Category_2"] <-"0"
+
+train50$Product_Category_3 <- factor(train50$Product_Category_3, levels=c(levels(train50$Product_Category_3), "0"))
+train50[is.na(train50$Product_Category_3), "Product_Category_3"] <-"0"
+
+
+
+train50$Cat_1 <- as.factor(ifelse((train50$Product_Category_1=='1' | train50$Product_Category_2=='1' | train50$Product_Category_3=='1'), 1,0))
+for(i in 2:20)
+{
+  assign(paste("Cat_", as.character(i), sep=""),as.factor(ifelse((train50$Product_Category_1==i | train50$Product_Category_2==i | train50$Product_Category_3==i), 1,0)))
+}
+train50 <- cbind(train50, Cat_2, Cat_3, Cat_4, Cat_5, Cat_6, Cat_7, Cat_8, Cat_9, Cat_10, Cat_11, Cat_12, Cat_13, Cat_14, Cat_15, Cat_16, Cat_17, Cat_18, Cat_19, Cat_20)
+
+
+to_drop <- c("Product_Category_1", "Product_Category_2", "Product_Category_3")
+train50 <- train50[,!names(train50)%in% to_drop]
+rm(Cat_2, Cat_3, Cat_4, Cat_5, Cat_6, Cat_7, Cat_8, Cat_9, Cat_10, Cat_11, Cat_12, Cat_13, Cat_14, Cat_15, Cat_16, Cat_17, Cat_18, Cat_19, Cat_20)
+
+
+dim(train50)
+
+as.matrix(sapply(train50, function(x) class(x)))
+
+
+test50$Product_Category_1 <- as.factor(test50$Product_Category_1)
+test50$Product_Category_2 <- as.factor(test50$Product_Category_2)
+test50$Product_Category_3 <- as.factor(test50$Product_Category_3)
+
+
+test50$Product_Category_2 <- factor(test50$Product_Category_2, levels=c(levels(test50$Product_Category_2), "0"))
+test50[is.na(test50$Product_Category_2), "Product_Category_2"] <-"0"
+
+test50$Product_Category_3 <- factor(test50$Product_Category_3, levels=c(levels(test50$Product_Category_3), "0"))
+test50[is.na(test50$Product_Category_3), "Product_Category_3"] <-"0"
+
+
+for(i in 1:20)
+{
+  assign(paste("Cat_", as.character(i), sep=""),as.factor(ifelse((test50$Product_Category_1==i | test50$Product_Category_2==i | test50$Product_Category_3==i), 1,0)))
+}
+test50 <- cbind(test50, Cat_1, Cat_2, Cat_3, Cat_4, Cat_5, Cat_6, Cat_7, Cat_8, Cat_9, Cat_10, Cat_11, Cat_12, Cat_13, Cat_14, Cat_15, Cat_16, Cat_17, Cat_18, Cat_19, Cat_20)
+
+
+to_drop <- c("Product_Category_1", "Product_Category_2", "Product_Category_3")
+test50 <- test50[,!names(test50)%in% to_drop]
+rm(Cat_1, Cat_2, Cat_3, Cat_4, Cat_5, Cat_6, Cat_7, Cat_8, Cat_9, Cat_10, Cat_11, Cat_12, Cat_13, Cat_14, Cat_15, Cat_16, Cat_17, Cat_18, Cat_19, Cat_20)
+
+dim(test50)
+as.matrix(sapply(test50, function(x) class(x)))
+rm(d1,d2,d3,d4,d5,d6,d7,d8,d9,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,i,to_drop)
+
+
+
+str(train50); str(test50)
+train50
+
+sapply(train50, function(x) sum(is.na(x))); sapply(test50, function(x) sum(is.na(x)))
+
+
+
+# Lecture 4 R Functions Experimentation
+summary(bf)
+psych::describe(bf,na.rm=TRUE)
+str(bf)
+

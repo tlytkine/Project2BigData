@@ -378,26 +378,11 @@ wssplot(train60.scaled,nc=7,seed=1234)
 wssplot(train70.scaled,nc=7,seed=1234)
 # nc = 7, 4 clusters 
 
-#  Determine # Clusters present 
-#  Obtain final cluster solution
 
-# K-means clustering <- sum of squares distance should be minimized 
-# total within-cluster sum of squares measures the compactness (i.e. goodness)
-# of the clustering and we want it to be as small as possible 
+# TO DO:
 
+# *** MOVE CODE BELOW TO PROPER SECTION ***
 
-#  Visualize the results 
-
-
-#  Interpret the clusters 
-
-
-#  Validate the clusters 
-
-str(bf)
-
-
-bf
 
 # Scree plot: Gettting an idea of components 
 bfScree <- scree(bfn.scaled,factors=TRUE)
@@ -425,26 +410,43 @@ plot(cumsum(prop_var_explained), xlab = "Principal Component",
      ylab = "Cumulative Proportion of Variance Explained",
      type = "b")
 
-# Root mean square = 0.08 (Measure of difference 
-# between observed and expected values)
-
-# dplyr::select(bf,Gender,Purchase)
-# split(bf,bf$Gender)
-
-# Total number of rows 
-sumRows <- nrow(bf)
-
-# Get sum of all purchases in table 
-sum(bf$Purchase)
-# Sum is 191564035
-# Get average purchases 
-mean(bf$Purchase)
-# 11661 is average purchase 
+# *** MOVE CODE ABOVE TO PROPER SECTION ***
 
 
-# Get average age 
-mean(bf$Age)
-# Average age is 34.08769
+#Determine # Clusters present: 
+#   -Tough probem, no generic solutions
+#   -Domain knowledge helpful
+#   -Use the NbClust package which has 30 indices
+
+
+# Obtain final cluster solution
+#   -Perform final clustering with best set of parameters
+#   -There is no optimal solution usually 
+#   -Might help: K-means clustering <- sum of squares distance should be minimized 
+#   total within-cluster sum of squares measures the compactness (i.e. goodness)
+#   of the clustering and we want it to be as small as possible 
+
+
+#  Visualize the results 
+#   -Hierarchical clustering usually displayed as a dendrogram
+#   -Partitioning clustering usually displayed as a bivariate cluster plot 
+#   -You may have to select pairs of variables to plot (latter case)
+
+#  Interpret the clusters 
+#   -Examining the clusters, find what is common and what is not
+#   -Requires domain knowledge 
+#   -Obtain summary statistics 
+#   -If categorical variables, look at modes and/or category distributions 
+
+#  Validate the clusters 
+#   -Are these groupings represented in the real world
+#   in some way?
+#   -If a different clustering method was used, would
+#    the same clusters be obtained?
+#   -Try the fpc, clv and clValid packages 
+
+
+
 
 
 

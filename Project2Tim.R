@@ -10,7 +10,6 @@ library(stringr)
 library(cluster)
 
 # Preparing the data 
-
 # load data from csv
 BlackFriday <- read.csv("BlackFriday.csv",stringsAsFactors = FALSE, header = TRUE, na.strings = c ('NA',''))
 
@@ -49,6 +48,7 @@ bf$Age
 str(bf)
 
 # Make age numeric
+
 # Copy bf to modify it 
 bfCopy <- bf
 
@@ -182,15 +182,13 @@ bfOccupation <- na.omit(bfOccupation)
 bfMaritalStatus <- na.omit(bfMaritalStatus)
 # Product ID 
 bfProductID <- na.omit(bfProductID)
-# City Category 
-bfCityCategory <- na.omit(bfCityCategory)
+
 
 # Scale the data 
 bfn.scaled <- scale(bfn)
 bfOccupation.scaled <- scale(bfOccupation)
 bfMaritalStatus.scaled <- scale(bfMaritalStatus)
 bfProductID.scaled <- scale(bfProductID)
-bfCityCategory.scaled <- scale(bfCityCategory)
 
 # Min-Max Normalization
 normalize <- function(x) {(((x-min(x))/max(x)-min(x)))}
@@ -199,7 +197,6 @@ normalize(bfn.scaled)
 normalize(bfOccupation.scaled)
 normalize(bfMaritalStatus.scaled)
 normalize(bfProductID.scaled)
-normalize(bfCityCategory.scaled)
 
 #  Screen for Outliers 
 # Use outliers package or mvoutlier for multivariate outliers
@@ -401,7 +398,6 @@ str(test30)
 
 
 # Plot Gender Vs. Purchase 
-
 
 # Plot Age Vs. Purchase 
 

@@ -10,6 +10,9 @@ library(stringr)
 library(cluster)
 library(class)
 library(outliers)
+library(NbClust)
+library(gmodels)
+
 
 # Preparing the data 
 # load data from csv
@@ -20,6 +23,8 @@ names(BlackFriday) <- c("User_ID","Product_ID","Gender","Age","Occupation","City
 
 # Check out the data
 BlackFriday
+
+
 
 # Copy data to a working variable 
 BlackFridayClean <- BlackFriday
@@ -80,9 +85,9 @@ for(row in 1:nrow(bfCopy)){
   print(row)
 }
 
-bf <- bfCopy
 
-bf
+
+bf <- bfCopy
 
 # Check unique ages
 unique(bf$Age)
@@ -150,7 +155,14 @@ bf <- within(bf,rm(Product_Category_3))
 bf <- within(bf,rm(City_Category))
 
 colnames(bf)
-# Divide into training and testing sets 
+# Divide into training and testing sets
+# This is done in order to:
+# 1. Train the model on the training set 
+# 2. Determine the values of the parameters required
+# 3. Test the model on the testing set 
+
+# For k-means clustering, the division into training and testing 
+# sets is done in order to identify the number of clusters aka k
 # 50-50
 train50 <- bf %>% dplyr::sample_frac(.50)
 test50  <- dplyr::anti_join(bf, train50, by = 'id')
@@ -197,9 +209,12 @@ bfn <- bf
 # Entire data set 
 bfn.scaled <- scale(bfn)
 # Scale the data 
-train50.scaled <- scale(train50)
-train60.scaled <- scale(train60)
-train70.scaled <- scale(train70)
+train50.scaled <- as.data.frame(scale(train50))
+train60.scaled <- as.data.frame(scale(train60))
+train70.scaled <- as.data.frame(scale(train70))
+test50.scaled <- as.data.frame(scale(test50))
+test40.scaled <- as.data.frame(scale(test40))
+test30.scaled <- as.data.frame(scale(test30))
 
 # Min-Max Normalization
 normalize <- function(x) {(((x-min(x))/max(x)-min(x)))}
@@ -208,6 +223,9 @@ normalize(bfn.scaled)
 normalize(train50.scaled)
 normalize(train60.scaled)
 normalize(train70.scaled)
+normalize(test50.scaled)
+normalize(test40.scaled)
+normalize(test30.scaled)
 #  Screen for Outliers 
 # Use outliers package or mvoutlier for multivariate outliers
 # Use clustering technique robust in presence of outliers 
@@ -251,16 +269,23 @@ mean(dist(bfn.scaled[sample(nrow(bfn.scaled),100),]))
 mean(dist(train50.scaled[sample(nrow(train50.scaled),100),]))
 mean(dist(train60.scaled[sample(nrow(train60.scaled),100),]))
 mean(dist(train70.scaled[sample(nrow(train70.scaled),100),]))
-     
-     
+mean(dist(test50.scaled[sample(nrow(test50.scaled),100),]))     
+mean(dist(test40.scaled[sample(nrow(test40.scaled),100),]))   
+mean(dist(test30.scaled[sample(nrow(test30.scaled),100),]))   
+
+
+    
 #  Select a Clustering Algorithm 
 # K means on training set 
-# Create classification labels for training 
+# Create classification labels for training
+# The labels are stored in the cluster column
+# of each training set where kmeans is run 
 # k-means clustering of size 3, 5 and 7 
 bfn.scaled.k3 <- kmeans(bfn.scaled,3)
 train50.scaled.k3 <- kmeans(train50.scaled,3)
 train60.scaled.k3 <- kmeans(train60,3)
 train70.scaled.k3 <- kmeans(train70,3)
+
 
 bfn.scaled.k5 <- kmeans(bfn.scaled,5)
 train50.scaled.k5<- kmeans(train50,5)
@@ -318,6 +343,75 @@ train50.scaled.k7$tot.withinss
 train60.scaled.k7$tot.withinss
 train70.scaled.k7$tot.withinss
 
+# The cluster labels are in the $cluster column of 
+# each variable above
+
+# run kmeans against the test set to see what clusters it 
+# assigns then compare with what knn produced 
+# Knn predicts what the cluster labels for autoclean.test 
+# should be given training set and classification labels 
+bf5050.knn3 <- knn(train50.scaled,test50.scaled,train50.scaled.k3$cluster,k=3)
+
+
+bf6040.knn3 <- knn(train60.scaled,test40.scaled,train60.scaled.k3$cluster,k=3)
+bf7030.knn3 <- knn(train70.scaled,test30.scaled,train70.scaled.k3$cluster,k=3)
+
+bf5050.knn5 <- knn(train50.scaled,test50.scaled,train50.scaled.k3$cluster,k=5)
+bf6040.knn5 <- knn(train60.scaled,test40.scaled,train60.scaled.k3$cluster,k=5)
+bf7030.knn5 <- knn(train70.scaled,test30.scaled,train70.scaled.k3$cluster,k=5)
+
+bf5050.knn7 <- knn(train50.scaled,test50.scaled,train50.scaled.k3$cluster,k=7)
+bf6040.knn7 <- knn(train60.scaled,test40.scaled,train60.scaled.k3$cluster,k=7)
+bf7030.knn7 <- knn(train70.scaled,test30.scaled,train70.scaled.k3$cluster,k=7)
+
+# Compare K Nearest neighbor against test set 
+# Apply kmeans to each test set to get classification labels 
+test50.scaled.k3<- kmeans(test50,3)
+test50.scaled.k3$cluster
+
+test40.scaled.k3<- kmeans(test40,3)
+test40.scaled.k3$cluster
+
+test30.scaled.k3<- kmeans(test30,3)
+test30.scaled.k3$cluster
+
+test50.scaled.k5<- kmeans(test50,5)
+test50.scaled.k5$cluster
+
+test40.scaled.k5<- kmeans(test40,5)
+test40.scaled.k5$cluster
+
+test30.scaled.k5<- kmeans(test30,5)
+test30.scaled.k5$cluster
+
+test50.scaled.k7<- kmeans(test50,7)
+test50.scaled.k7$cluster
+
+test40.scaled.k7<- kmeans(test40,7)
+test40.scaled.k7$cluster
+
+test30.scaled.k7<- kmeans(test30,7)
+test30.scaled.k7$cluster
+
+# Evaluating KNN
+# Try different initial estimates of k, then use Cross tables to 
+# determine if you are improving or not 
+# Build a table of false negatives and false positives for each value of k 
+# Draw a histogram of this table when done 
+# Use Cross-Tabulation in gmodels package to evaluate the result 
+# 5050 train/test set 
+CrossTable(x=test50.scaled.k3$cluster,y=bf5050.knn3,prop.chisq=FALSE)
+CrossTable(x=test50.scaled.k5$cluster,y=bf5050.knn5,prop.chisq=FALSE)
+CrossTable(x=test50.scaled.k7$cluster,y=bf5050.knn7,prop.chisq=FALSE)
+# 6040 train/test set 
+CrossTable(x=test40.scaled.k3$cluster,y=bf6040.knn3,prop.chisq=FALSE)
+CrossTable(x=test40.scaled.k5$cluster,y=bf6040.knn5,prop.chisq=FALSE)
+CrossTable(x=test40.scaled.k7$cluster,y=bf6040.knn7,prop.chisq=FALSE)
+# 7030 train/test set 
+CrossTable(x=test30.scaled.k3$cluster,y=bf7030.knn3,prop.chisq=FALSE)
+CrossTable(x=test30.scaled.k5$cluster,y=bf7030.knn5,prop.chisq=FALSE)
+CrossTable(x=test30.scaled.k7$cluster,y=bf7030.knn7,prop.chisq=FALSE)
+
 
 
 # iClust 
@@ -343,6 +437,33 @@ iclust(train70.scaled,nclusters=7)
 hc <- hclust(dist(bfn.scaled[sample(nrow(bfn.scaled),100),]),"ave")
 plot(hc)
 
+
+
+#Determine # Clusters present: 
+#   -Tough probem, no generic solutions
+#   -Domain knowledge helpful
+#   -Use the NbClust package which has 30 indices
+clusplot(pam(x=test30[1:100,],k=3,metric="euclidean",stand=FALSE))
+
+# Principal function
+bf.pca <- principal(bfn.scaled, nfactors = 2, rotate = "none")
+bf.pca
+
+colnames(bfn.scaled)
+bf.prcomp <- prcomp(bfn.scaled[,c(1:12)], center = T, scale. = T)
+bf.prcomp
+prop_var <- var(bf.pca$values)
+
+prop_var_explained <- prop_var/sum(bf.pca$values)
+# scree plot to access components or factors which explains the most of variability in the data
+plot(prop_var_explained, xlab = "Principal Component", 
+     ylab = "Proportion of Variance Explained",
+     type = "b")
+
+plot(cumsum(prop_var_explained), xlab = "Principal Component",
+     ylab = "Cumulative Proportion of Variance Explained",
+     type = "b")
+
 wssplot <- function(data,nc=15,seed=1234)
 {
   wss <- (nrow(data)-2)*sum(apply(data,2,var))
@@ -355,7 +476,6 @@ wssplot <- function(data,nc=15,seed=1234)
        xlab="Number of Clusters",
        ylab="Within groups sum of squares")
 }
-
 
 #  Try wssplot 
 # A bend in the graph can suggest the appropriate number of clusters 
@@ -378,72 +498,197 @@ wssplot(train60.scaled,nc=7,seed=1234)
 wssplot(train70.scaled,nc=7,seed=1234)
 # nc = 7, 4 clusters 
 
-
-# TO DO:
-
-# *** MOVE CODE BELOW TO PROPER SECTION ***
-
-
 # Scree plot: Gettting an idea of components 
 bfScree <- scree(bfn.scaled,factors=TRUE)
 bfScree
 
 
-clusplot(pam(x=test30[1:100,],k=3,metric="euclidean",stand=FALSE))
+# TO DO: Try Nbclust package on training sets 
+train50
+train60
+train70
 
-# Principal function
-bf.pca <- principal(bfn.scaled, nfactors = 2, rotate = "none")
-bf.pca
+# TO DO: WHAT IS THE FINAL NUMBER OF CLUSTERS TO BE USED??
+# TO DO: DECIDE ON NUMBER 
 
-colnames(bfn.scaled)
-bf.prcomp <- prcomp(bfn.scaled[,c(1:12)], center = T, scale. = T)
-bf.prcomp
-prop_var <- var(bf.pca$values)
-
-prop_var_explained <- prop_var/sum(bf.pca$values)
-# scree plot to access components or factors which explains the most of variability in the data
-plot(prop_var_explained, xlab = "Principal Component", 
-     ylab = "Proportion of Variance Explained",
-     type = "b")
-
-plot(cumsum(prop_var_explained), xlab = "Principal Component",
-     ylab = "Cumulative Proportion of Variance Explained",
-     type = "b")
-
-# *** MOVE CODE ABOVE TO PROPER SECTION ***
-
-
-#Determine # Clusters present: 
-#   -Tough probem, no generic solutions
-#   -Domain knowledge helpful
-#   -Use the NbClust package which has 30 indices
-
-
-# Obtain final cluster solution
+# TO DO: Obtain final cluster solution 
 #   -Perform final clustering with best set of parameters
 #   -There is no optimal solution usually 
 #   -Might help: K-means clustering <- sum of squares distance should be minimized 
 #   total within-cluster sum of squares measures the compactness (i.e. goodness)
 #   of the clustering and we want it to be as small as possible 
 
+# TO DO: PERFORM CLUSTERING ONCE AGAIN ON TESTING SETS WITH 
+# TO DO: FINAL NUMBER OF CLUSTERS 
 
-#  Visualize the results 
+
+
+# TO DO: Visualize the results 
 #   -Hierarchical clustering usually displayed as a dendrogram
 #   -Partitioning clustering usually displayed as a bivariate cluster plot 
 #   -You may have to select pairs of variables to plot (latter case)
 
-#  Interpret the clusters 
+# TO DO: PLOT RESULTS OF CLUSTERING ON TESTING SETS 
+
+
+#  TO DO: Interpret the clusters 
 #   -Examining the clusters, find what is common and what is not
 #   -Requires domain knowledge 
 #   -Obtain summary statistics 
 #   -If categorical variables, look at modes and/or category distributions 
+# TO DO: EXAMINE STATISTICS / PLOTS OF RESULTS ABOVE, 
+# TO DO: MAKE CHARTS GRAPHS ETC 
 
-#  Validate the clusters 
+
+
+#  TO DO: Validate the clusters 
 #   -Are these groupings represented in the real world
 #   in some way?
 #   -If a different clustering method was used, would
 #    the same clusters be obtained?
 #   -Try the fpc, clv and clValid packages 
+
+# TO DO: LOOK OVER FINAL RESULTS (ON TESTING SET)
+
+
+# TO DO: You should investigate some of the statistics of the data set 
+# TO DO: (Basically just randomly messing with the data)
+
+
+
+# 4. Try the lm and glm methods to get linear fits for the data. 
+# This will not work on all attributes, so you must determine 
+# which ones it will work on. Note as discussed in class binomial 
+# (logit) expects two categories, so you might combine the two 
+# data sets into one and determine if you can distinguish between
+# and how good the fit it.
+#  See the slides for book chapters to read to help you. 
+# Try different methods in glm, build a table and record the 
+# relevant data. What can you determine from the table of values?
+
+# Linear Regression: A generalized linear model often used to predict
+# a binary outcome or decision from a set of numeric variables.
+# -dependent variable categorical e.g. discrete values 
+# -outcome variable with two possible categorical outcomes 
+# (1=success, 0=failure)
+# assumes errors are normally distributed, mean=0 and constant variance
+# pi is the probability of success 
+# The standard logistic function can take an input with any value 
+# from negative to positive infinity, wheras the output always 
+# take values between zero and one 
+
+# Logit form: log(pi(1-pi)) = beta0 + beta1*X
+# Probability form: pi = (e^(beta0+beta1*X)) / (1 + e^(beta0+beta1*X))
+
+# Change in probability P is not constant (linear) with 
+# constant changes in X.
+# The probability of a success (Y = 1) given the predictor variable
+# (X) is a non-linear function, specifically a logistic function.
+
+# It is not obvious how the regression coefficients for X are related to 
+# changes in the dependent variable (Y).
+# The joint effects of all explanatory variables put together 
+# on the odds (a probability) is
+# Odds = P/1-P = e α + β1X1 + β2X2 + …+βpXp
+# Taking the logarithms of both sides
+# Log{P/1-P} = log α+β1X1+β2X2+…+βpXp
+# Logit P = α+β1X1+β2X2+..+βpXp
+# The coefficients β1, β2, βp are such that the sums of the squared
+# distance between the observed and predicted values (i.e., the regression
+# line) are smallest.
+
+# combine two data sets into one 
+train50
+test50
+combined5050 <- rbind(train50,test50)
+combined5050
+
+train60
+test40
+combined6040 <- rbind(train60,test40)
+combined6040
+
+train70
+test30
+combined7030 <- rbind(train70,test30)
+combined7030
+# Scale the combined set 
+combined5050.scaled <- as.data.frame(scale(combined5050))
+combined6040.scaled <- as.data.frame(scale(combined6040))
+combined7030.scaled <- as.data.frame(scale(combined7030))
+# Normalize the combined sets 
+combined5050.scaled <- normalize(combined5050.scaled)
+combined6040.scaled <- normalize(combined6040.scaled)
+combined7030.scaled <- normalize(combined7030.scaled)
+
+# lm method 
+# lm on Purchase vs. Age 
+# Plot of fitted value versus residuals following every lm 
+# 5050 set 
+lm1 <- lm(combined5050.scaled$Purchase ~ combined5050.scaled$Age, data = combined5050.scaled)
+plot(lm1$fitted.values,lm1$residuals)
+# 6040 set 
+lm2 <- lm(combined6040.scaled$Purchase ~ combined6040.scaled$Age, data = combined6040.scaled)
+plot(lm2$fitted.values,lm2$residuals)
+# 7030 set 
+lm3 <- lm(combined7030.scaled$Purchase ~ combined7030.scaled$Age, data = combined7030.scaled)
+plot(lm3$fitted.values,lm3$residuals)
+# lm on Purchase vs. Stay_In_Current_City_Years 
+# 5050 set
+lm4 <- lm(combined5050.scaled$Purchase ~ combined5050.scaled$Stay_In_Current_City_Years, data = combined5050.scaled)
+plot(lm4$fitted.values,lm4$residuals)
+# 6040 set 
+lm5 <- lm(combined6040.scaled$Purchase ~ combined6040.scaled$Stay_In_Current_City_Years, data = combined6040.scaled)
+plot(lm5$fitted.values,lm5$residuals)
+# 7030 set 
+lm6 <- lm(combined7030.scaled$Purchase ~ combined7030.scaled$Stay_In_Current_City_Years, data = combined7030.scaled)
+plot(lm6$fitted.values,lm6$residuals)
+# lm on Purchase vs. Occupation 
+# 5050 set 
+lm7 <- lm(combined5050.scaled$Purchase ~ combined5050.scaled$Stay_In_Current_City_Years, data = combined5050.scaled)
+plot(lm7$fitted.values,lm7$residuals)
+# 6040 set 
+lm8 <- lm(combined6040.scaled$Purchase ~ combined6040.scaled$Stay_In_Current_City_Years, data = combined6040.scaled)
+plot(lm8$fitted.values,lm8$residuals)
+# 7030 set 
+lm9 <- lm(combined7030.scaled$Purchase ~ combined7030.scaled$Stay_In_Current_City_Years, data = combined7030.scaled)
+plot(lm9$fitted.values,lm9$residuals)
+
+
+# glm method (Same as above but with glm)
+# glm on Purchase vs. Age 
+# 5050 set 
+glm1 <- glm(formula = combined5050.scaled$Purchase~combined5050$Age,family=gaussian,data=combined5050.scaled)
+glm1
+# 6040 set 
+glm2 <- glm(formula = combined6040.scaled$Purchase~combined6040$Age,family=gaussian,data=combined6040.scaled)
+glm2
+# 7030 set 
+glm3 <- glm(formula = combined7030$Purchase~combined7030$Age,family=gaussian,data=combined7030.scaled)
+glm3
+# glm on Purchase vs. Stay_In_Current_City_Years 
+# 5050 set 
+glm4 <- glm(formula = combined5050.scaled$Purchase~combined5050$Stay_In_Current_City_Years,family=gaussian,data=combined5050.scaled)
+glm4
+# 6040 set 
+glm5 <- glm(formula = combined6040.scaled$Purchase~combined6040$Stay_In_Current_City_Years,family=gaussian,data=combined6040.scaled)
+glm5
+# 7030 set 
+glm6 <- glm(formula = combined7030$Purchase~combined7030$Stay_In_Current_City_Years,family=gaussian,data=combined7030.scaled)
+glm6
+# glm on Purchase vs. Occupation 
+# 5050 set 
+glm7 <- glm(formula = combined5050.scaled$Purchase~combined5050$Stay_In_Current_City_Years,family=gaussian,data=combined5050.scaled)
+glm7
+# 6040 set 
+glm8 <- glm(formula = combined6040.scaled$Purchase~combined6040$Stay_In_Current_City_Years,family=gaussian,data=combined6040.scaled)
+glm8
+# 7030 set 
+glm9 <- glm(formula = combined7030$Purchase~combined7030$Stay_In_Current_City_Years,family=gaussian,data=combined7030.scaled)
+glm9
+
+
+
 
 
 

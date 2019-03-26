@@ -385,9 +385,11 @@ test30.scaled.k5<- kmeans(test30,5)
 test30.scaled.k5$cluster
 
 test50.scaled.k7<- kmeans(test50,7)
+
 test50.scaled.k7$cluster
 
 test40.scaled.k7<- kmeans(test40,7)
+
 test40.scaled.k7$cluster
 
 test30.scaled.k7<- kmeans(test30,7)
@@ -415,11 +417,6 @@ CrossTable(x=test30.scaled.k7$cluster,y=bf7030.knn7,prop.chisq=FALSE)
 
 
 # iClust 
-# Whole data set 
-iclust(bfn.scaled,nclusters=3)
-iclust(bfn.scaled,nclusters=5)
-iclust(bfn.scaled,nclusters=7)
-
 iclust(train50.scaled,nclusters=3)
 iclust(train50.scaled,nclusters=5)
 iclust(train50.scaled,nclusters=7)

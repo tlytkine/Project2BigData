@@ -21,40 +21,26 @@ BlackFriday <- read.csv("BlackFriday.csv",stringsAsFactors = FALSE, header = TRU
 # Set names for data 
 names(BlackFriday) <- c("User_ID","Product_ID","Gender","Age","Occupation","City_Category","Stay_In_Current_City_Years","Marital_Status","Product_Category_1","Product_Category_2","Product_Category_3","Purchase")
 
-# Check out the data
-BlackFriday
-
-
-
-# Copy data to a working variable 
-BlackFridayClean <- BlackFriday
-
 # Removing missing data
-BlackFridayClean <- na.omit(BlackFridayClean)
-
-# View BlackFridayClean
-BlackFridayClean
-colnames(BlackFridayClean)
-bf <- BlackFridayClean
+BlackFriday <- na.omit(BlackFridayClean)
+bf <- BlackFriday
 colnames(bf)
 # Summary
 summary(bf)
 # Describe 
 describe(bf)
-bf
+
+str(bf)
+
 # Make gender numeric 
 # 0 = female, male = 1
 bf[bf=="F"] <- 0
 bf[bf=="M"] <- 1
-bf
 
 # Change gender to numeric 
 bf$Gender <- as.numeric(as.character(bf$Gender))
-bf$Age
-str(bf)
 
 # Make age numeric
-
 # Copy bf to modify it 
 bfCopy <- bf
 
@@ -85,8 +71,6 @@ for(row in 1:nrow(bfCopy)){
   print(row)
 }
 
-
-
 bf <- bfCopy
 
 # Check unique ages
@@ -106,16 +90,11 @@ for(row in 1:nrow(bf)){
   print(row)
 }
 
-bf$Product_ID
-
 # Change Product_ID to numeric 
 bf$Product_ID <- as.numeric(as.character(bf$Product_ID))
-bf$Product_ID
 
 # Change city_category to numeric, A = 1, B = 2, C = 3 
 unique(bf$City_Category)
-
-bf$City_Category
 
 bf$City_Category[bf$City_Category=="A"] <- 1
 bf$City_Category[bf$City_Category=="B"] <- 2
@@ -133,7 +112,6 @@ for(row in 1:nrow(bf)){
   } 
   print(row)
 }
-bf$Stay_In_Current_City_Years
 unique(bf$Stay_In_Current_City_Years)
 bf$Stay_In_Current_City_Years <- as.numeric(as.character(bf$Stay_In_Current_City_Years))
 
@@ -189,11 +167,6 @@ test30 <- na.omit(test30)
 
 train70 <- within(train70,rm(id))
 test30 <- within(test30,rm(id))
-
-
-# Testing out pairs function ??? What to do with this 
-# pairs(Occupation ~ User_ID + Gender + Age, data = bf)
-#  pairs(Marital_Status ~ User_ID + Gender + Age, data = bf)
 
 
 # Cluster Analysis
@@ -324,7 +297,7 @@ train60.scaled.k5$totss
 train70.scaled.k5$totss
 
 bfn.scaled.k7$totss
-train50.scaled.k7totss
+train50.scaled.k7$totss
 train60.scaled.k7$totss
 train70.scaled.k7$totss
 # tot.withinns varies, needs to be interpreted to find right number of clusters
@@ -351,7 +324,6 @@ train70.scaled.k7$tot.withinss
 # Knn predicts what the cluster labels for autoclean.test 
 # should be given training set and classification labels 
 bf5050.knn3 <- knn(train50.scaled,test50.scaled,train50.scaled.k3$cluster,k=3)
-
 
 bf6040.knn3 <- knn(train60.scaled,test40.scaled,train60.scaled.k3$cluster,k=3)
 bf7030.knn3 <- knn(train70.scaled,test30.scaled,train70.scaled.k3$cluster,k=3)
@@ -415,12 +387,9 @@ CrossTable(x=test30.scaled.k7$cluster,y=bf7030.knn7,prop.chisq=FALSE)
 
 
 # iClust 
-# Whole data set 
-iclust(bfn.scaled,nclusters=3)
-iclust(bfn.scaled,nclusters=5)
-iclust(bfn.scaled,nclusters=7)
-
+# Looks good!
 iclust(train50.scaled,nclusters=3)
+# Nans produced when using 5 or 7 clusters so we will not use that many 
 iclust(train50.scaled,nclusters=5)
 iclust(train50.scaled,nclusters=7)
 
@@ -428,33 +397,39 @@ iclust(train60.scaled,nclusters=3)
 iclust(train60.scaled,nclusters=5)
 iclust(train60.scaled,nclusters=7)
 
+str(train60.scaled)
 iclust(train70.scaled,nclusters=3)
 iclust(train70.scaled,nclusters=5)
 iclust(train70.scaled,nclusters=7)
 
+# Cluster 1 between Occupation and Gender
+# Cluster 2 between Marital_Status and Age 
+# Cluster 3 between User_ID and Stay_In_Current_City_Years
+# Cluster 4 between Cluster 1 (Occupation and Gender) and Purchase 
+
 
 # Try hclust 
-hc <- hclust(dist(bfn.scaled[sample(nrow(bfn.scaled),100),]),"ave")
+hc <- hclust(dist(train60.scaled[sample(nrow(train60.scaled),100),]),"ave")
 plot(hc)
-
 
 
 #Determine # Clusters present: 
 #   -Tough probem, no generic solutions
 #   -Domain knowledge helpful
 #   -Use the NbClust package which has 30 indices
-clusplot(pam(x=test30[1:100,],k=3,metric="euclidean",stand=FALSE))
+
 
 # Principal function
-bf.pca <- principal(bfn.scaled, nfactors = 2, rotate = "none")
-bf.pca
+train50.scaled.pca <- principal(train50.scaled, nfactors = 2, rotate = "none")
+train60.scaled.pca <- principal(train60.scaled, nfactors = 2, rotate = "none")
+train70.scaled.pca <- principal(train70.scaled, nfactors = 2, rotate = "none")
+train50.scaled.pca$values
 
-colnames(bfn.scaled)
-bf.prcomp <- prcomp(bfn.scaled[,c(1:12)], center = T, scale. = T)
+bf.prcomp <- prcomp(train50.scaled.pca$values, center = T, scale. = T)
 bf.prcomp
-prop_var <- var(bf.pca$values)
+prop_var <- var(train50.scaled.pca$values)
 
-prop_var_explained <- prop_var/sum(bf.pca$values)
+prop_var_explained <- prop_var/sum(train50.scaled.pca$values)
 # scree plot to access components or factors which explains the most of variability in the data
 plot(prop_var_explained, xlab = "Principal Component", 
      ylab = "Proportion of Variance Explained",
@@ -480,19 +455,14 @@ wssplot <- function(data,nc=15,seed=1234)
 #  Try wssplot 
 # A bend in the graph can suggest the appropriate number of clusters 
 # Bends 
-wssplot(bfn.scaled,nc=3,seed=1234)
 wssplot(train50.scaled,nc=3,seed=1234)
 wssplot(train60.scaled,nc=3,seed=1234)
 wssplot(train70.scaled,nc=3,seed=1234)
-# nc = 3, 2 clusters 
-
-wssplot(bfn.scaled,nc=5,seed=1234)
+# nc = 3, 2 clusters
 wssplot(train50.scaled,nc=5,seed=1234)
 wssplot(train60.scaled,nc=5,seed=1234)
 wssplot(train70.scaled,nc=5,seed=1234)
 # nc = 5, 3 clusters 
-
-wssplot(bfn.scaled,nc=7,seed=1234)
 wssplot(train50.scaled,nc=7,seed=1234)
 wssplot(train60.scaled,nc=7,seed=1234)
 wssplot(train70.scaled,nc=7,seed=1234)
@@ -504,12 +474,29 @@ bfScree
 
 
 # TO DO: Try Nbclust package on training sets 
-train50
-train60
-train70
+# 50-50 
+result1 <- NbClust(train50.scaled[sample(nrow(train50.scaled),500),],distance="euclidean",min.nc=3,max.nc=7, method="ward.D",index="all")
+result1$All.index
+result1$Best.nc
+result1$All.CriticalValues
+result1$Best.partition
+# 60-40
+result2 <- NbClust(train60.scaled[sample(nrow(train60.scaled),500),],distance="euclidean",min.nc=3,max.nc=7,method="ward.D",index="all")
+result2$All.index
+result2$Best.nc
+result2$All.CriticalValues
+result2$Best.partition
+# 70-30 
+result3 <- NbClust(train70.scaled[sample(nrow(train70.scaled),500),],distance="euclidean",min.nc=3,max.nc=7,method="ward.D",index="all")
+result3$All.index
+result3$Best.nc
+result3$All.CriticalValues
+result3$Best.partition
 
 # TO DO: WHAT IS THE FINAL NUMBER OF CLUSTERS TO BE USED??
+# 3 or 4 clusters 
 # TO DO: DECIDE ON NUMBER 
+# 3 
 
 # TO DO: Obtain final cluster solution 
 #   -Perform final clustering with best set of parameters
@@ -520,6 +507,16 @@ train70
 
 # TO DO: PERFORM CLUSTERING ONCE AGAIN ON TESTING SETS WITH 
 # TO DO: FINAL NUMBER OF CLUSTERS 
+# kmeans clustering 
+kmeans(test30.scaled,3)
+kmeans(test40.scaled,3)
+kmeans(test50.scaled,3)
+# iclust clustering 
+test30.scaled <- na.omit(test30.scaled)
+iclust(test30.scaled,nclusters=3)
+test50.scaled <- na.omit(test50.scaled)
+iclust(test40.scaled,nclusters=3)
+iclust(test50.scaled,nclusters=3)
 
 
 
@@ -527,9 +524,12 @@ train70
 #   -Hierarchical clustering usually displayed as a dendrogram
 #   -Partitioning clustering usually displayed as a bivariate cluster plot 
 #   -You may have to select pairs of variables to plot (latter case)
+# USE CLUSPLOT TO VISUALIZE (BELOW)
+clusplot(pam(x=test30[sample(nrow(test30),100),],k=3,metric="euclidean",stand=FALSE))
+clusplot(pam(x=test40[sample(nrow(test40),100),],k=3,metric="euclidean",stand=FALSE))
+clusplot(pam(x=test50[sample(nrow(test40),100),],k=3,metric="euclidean",stand=FALSE))
 
 # TO DO: PLOT RESULTS OF CLUSTERING ON TESTING SETS 
-
 
 #  TO DO: Interpret the clusters 
 #   -Examining the clusters, find what is common and what is not
@@ -538,6 +538,11 @@ train70
 #   -If categorical variables, look at modes and/or category distributions 
 # TO DO: EXAMINE STATISTICS / PLOTS OF RESULTS ABOVE, 
 # TO DO: MAKE CHARTS GRAPHS ETC 
+
+# There is a relation between Occupation and Gender 
+# in addition to Marital Status and Age. 
+
+
 
 
 
@@ -549,12 +554,6 @@ train70
 #   -Try the fpc, clv and clValid packages 
 
 # TO DO: LOOK OVER FINAL RESULTS (ON TESTING SET)
-
-
-# TO DO: You should investigate some of the statistics of the data set 
-# TO DO: (Basically just randomly messing with the data)
-
-
 
 # 4. Try the lm and glm methods to get linear fits for the data. 
 # This will not work on all attributes, so you must determine 
@@ -689,8 +688,127 @@ glm9
 
 
 
+# TO DO: You should investigate some of the statistics of the data set 
+# TO DO: (Basically just randomly messing with the data)
+
+# Use pairs to plot stuff 
+# User_ID
+# Which user made the biggest purchase and how much was it? 
+uidVsPurchase <- dplyr::select(bf,"User_ID","Purchase")
+uidVsPurchase
+
+colMax <- function(data) sapply(data, max, na.rm = TRUE)
+colSort <- function(data, ...) sapply(data, sort, ...)
+colMax(uidVsPurchase)
+# Max purchase was 23959 by user 1006040
+
+# Product_ID 
+# Which product ID had the greatest revenue and how much revenue did it generate?
+pidVsRevenue <- dplyr::select(bf,"Product_ID","Purchase")
+pidVsRevenue
+colMax(pidVsRevenue)
+# Max purchases was 23959 for product ID P0099942
+
+# Gender 
+# Which gender contributed more to the revenue and how much did they contribute?
+genderVsRevenue <- dplyr::select(bf,"Gender","Purchase")
+genderVsRevenue <- split(genderVsRevenue,genderVsRevenue$Gender)
+genderVsRevenue 
+sum(genderVsRevenue$M$Purchase)
+# 1,506,076,260
+# Males contributed more 
+sum(genderVsRevenue$F$Purchase)
+# 409,569,775
+
+# Age 
+# Which age group contributed the most to the revenue and how much?
+ageVsRevenue <- dplyr::select(bf,"Age","Purchase")
+ageVsRevenue <- split(ageVsRevenue,ageVsRevenue$Age)
+summary(ageVsRevenue)
+
+ageVsRevenue <- c(sum(ageVsRevenue$`0-17`$Purchase),sum(ageVsRevenue$`18-25`$Purchase),sum(ageVsRevenue$`26-35`$Purchase),sum(ageVsRevenue$`36-45`$Purchase),sum(ageVsRevenue$`46-50`$Purchase),sum(ageVsRevenue$`51-55`$Purchase),sum(ageVsRevenue$`55+`$Purchase))
+names(ageVsRevenue) <- c("0-17","18-25","26-35","36-45","46-50","51-55","55+")
+max(ageVsRevenue)
+# 26-35 spent the most: 765778036
+
+uids <- bf[,1]
+pids <- bf[,2]
+gender <- bf[,3]
+age <- bf[,4]
+occupations <- bf[,5]
+cities <- bf[,6]
+yearsStayed <- bf[,7]
+maritalStatus <- bf[,8]
+prod1 <- bf[,9]
+prod2 <- bf[,10]
+prod3 <- bf[,11]
+purchases <- bf[,12]
+
+mean(purchases)
+
+purchases <- na.omit(purchases)
+purchases
+summary(purchases)
 
 
+
+userIDvsPurchase.scaled <- scale(userIDvsPurchase)
+uidvsp <- userIDvsPurchase.scaled
+
+str(bf.data)
+str(uidvsp)
+
+uidvsp <- na.omit(uidvsp)
+
+
+# Make table with UserID, gender, age, city category, purchase 
+bf.data <- dplyr::select(bf,User_ID,Gender,Age,City_Category,Purchase)
+bf.data <- na.omit(bf.data)
+bf.data
+sapply()
+
+iclust(bf.data)
+
+userIDvsPurchase <- dplyr::select(bf,User_ID,Purchase)
+
+psych::describe(bf.data,na.rm=TRUE)
+summary(bf.data)
+str(bf.data)
+
+# Clusters for UserID
+userids <- bf.data$User_ID
+userids <- na.omit(userids)
+userids
+uidClust <- kmeans(userids,centers=2,nstart=25)
+uidClust
+uidvspClust <- kmeans(uidvsp,centers=2,nstart=25)
+uidvspClust
+
+# Clusters for Gender 
+genders <- bf.data$Gender
+genders <- na.omit(genders)
+genders
+genderClust <- kmeans(userids,centers=2,nstart=25)
+genderClust
+
+# Clusters for Age 
+ages <- bf.data$Age
+ages <- na.omit(ages)
+ages
+iclust(bf.data,nclusters=4)
+# Total number of rows 
+sumRows <- nrow(bf)
+
+# Get sum of all purchases in table 
+sum(bf$Purchase)
+# Sum is 191564035
+# Get average purchases 
+mean(bf$Purchase)
+# 11661 is average purchase 
+
+# Get average age 
+mean(bf$Age)
+# Average age is 34.08769
 
 
 

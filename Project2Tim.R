@@ -357,9 +357,11 @@ test30.scaled.k5<- kmeans(test30,5)
 test30.scaled.k5$cluster
 
 test50.scaled.k7<- kmeans(test50,7)
+
 test50.scaled.k7$cluster
 
 test40.scaled.k7<- kmeans(test40,7)
+
 test40.scaled.k7$cluster
 
 test30.scaled.k7<- kmeans(test30,7)

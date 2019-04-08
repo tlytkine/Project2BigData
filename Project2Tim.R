@@ -22,7 +22,7 @@ BlackFriday <- read.csv("BlackFriday.csv",stringsAsFactors = FALSE, header = TRU
 names(BlackFriday) <- c("User_ID","Product_ID","Gender","Age","Occupation","City_Category","Stay_In_Current_City_Years","Marital_Status","Product_Category_1","Product_Category_2","Product_Category_3","Purchase")
 
 # Removing missing data
-BlackFriday <- na.omit(BlackFridayClean)
+BlackFriday <- na.omit(BlackFriday)
 bf <- BlackFriday
 colnames(bf)
 # Summary
@@ -51,6 +51,7 @@ unique(bfCopy$Age)
 print(nrow(bfCopy))
 
 # Set age range to random values 
+
 for(row in 1:nrow(bfCopy)){
   # Assuming the youngest age people shop during BlackFriday is 1
   if(bfCopy[row,"Age"]=="0-17"){ # Generation Z 
@@ -83,6 +84,8 @@ str(bf)
 bf$Age <- as.numeric(as.character(bf$Age))
 bf$Age
 
+bf$Product_ID
+
 
 # Getting rid of first character of Product_ID
 for(row in 1:nrow(bf)){
@@ -100,6 +103,7 @@ bf$City_Category[bf$City_Category=="A"] <- 1
 bf$City_Category[bf$City_Category=="B"] <- 2
 bf$City_Category[bf$City_Category=="C"] <- 3
 
+
 bf$City_Category <- as.numeric(as.character(bf$City_Category))
 
 # Change Stay_in_current_city_years to numeric
@@ -112,6 +116,7 @@ for(row in 1:nrow(bf)){
   } 
   print(row)
 }
+
 unique(bf$Stay_In_Current_City_Years)
 bf$Stay_In_Current_City_Years <- as.numeric(as.character(bf$Stay_In_Current_City_Years))
 
@@ -133,6 +138,7 @@ bf <- within(bf,rm(Product_Category_3))
 bf <- within(bf,rm(City_Category))
 
 colnames(bf)
+
 # Divide into training and testing sets
 # This is done in order to:
 # 1. Train the model on the training set 
@@ -199,6 +205,8 @@ normalize(train70.scaled)
 normalize(test50.scaled)
 normalize(test40.scaled)
 normalize(test30.scaled)
+
+
 #  Screen for Outliers 
 # Use outliers package or mvoutlier for multivariate outliers
 # Use clustering technique robust in presence of outliers 
@@ -210,14 +218,11 @@ out_1 <- outlier(bfn.scaled[, "Stay_In_Current_City_Years"], opposite = FALSE, l
 out50_1 <- outlier(train50.scaled[, "Stay_In_Current_City_Years"], opposite = FALSE, logical=FALSE)
 out60_1 <- outlier(train60.scaled[, "Stay_In_Current_City_Years"], opposite = FALSE, logical=FALSE)
 out70_1 <- outlier(train60.scaled[, "Stay_In_Current_City_Years"], opposite = FALSE, logical=FALSE)
-out50_1
-out60_1
-out70_1
+
 rm.outlier(bfn.scaled[,"Stay_In_Current_City_Years"],fill=FALSE,median=FALSE,opposite=FALSE)
 rm.outlier(train50.scaled[, "Stay_In_Current_City_Years"], fill = FALSE, median = FALSE, opposite = FALSE)
 rm.outlier(train60.scaled[, "Stay_In_Current_City_Years"], fill = FALSE, median = FALSE, opposite = FALSE)
 rm.outlier(train70.scaled[, "Stay_In_Current_City_Years"], fill = FALSE, median = FALSE, opposite = FALSE)
-# prints what was removed
 
 
 # Purchase
@@ -230,21 +235,17 @@ rm.outlier(bfn.scaled[,"Purchase"],fill=FALSE,median=FALSE,opposite=FALSE)
 rm.outlier(train50.scaled[, "Purchase"], fill = FALSE, median = FALSE, opposite = FALSE)
 rm.outlier(train60.scaled[, "Purchase"], fill = FALSE, median = FALSE, opposite = FALSE)
 rm.outlier(train70.scaled[, "Purchase"], fill = FALSE, median = FALSE, opposite = FALSE)
-# prints what was removed
-out_2
-out50_2
-out60_2
-out70_2
+
 
 
 #  Calculate Distances 
-mean(dist(bfn.scaled[sample(nrow(bfn.scaled),100),]))
-mean(dist(train50.scaled[sample(nrow(train50.scaled),100),]))
-mean(dist(train60.scaled[sample(nrow(train60.scaled),100),]))
-mean(dist(train70.scaled[sample(nrow(train70.scaled),100),]))
-mean(dist(test50.scaled[sample(nrow(test50.scaled),100),]))     
-mean(dist(test40.scaled[sample(nrow(test40.scaled),100),]))   
-mean(dist(test30.scaled[sample(nrow(test30.scaled),100),]))   
+mean(dist(bfn.scaled[sample(nrow(bfn.scaled),1000),]))
+mean(dist(train50.scaled[sample(nrow(train50.scaled),1000),]))
+mean(dist(train60.scaled[sample(nrow(train60.scaled),1000),]))
+mean(dist(train70.scaled[sample(nrow(train70.scaled),1000),]))
+mean(dist(test50.scaled[sample(nrow(test50.scaled),1000),]))     
+mean(dist(test40.scaled[sample(nrow(test40.scaled),1000),]))   
+mean(dist(test30.scaled[sample(nrow(test30.scaled),1000),]))   
 
 
     
@@ -256,19 +257,18 @@ mean(dist(test30.scaled[sample(nrow(test30.scaled),100),]))
 # k-means clustering of size 3, 5 and 7 
 bfn.scaled.k3 <- kmeans(bfn.scaled,3)
 train50.scaled.k3 <- kmeans(train50.scaled,3)
-train60.scaled.k3 <- kmeans(train60,3)
-train70.scaled.k3 <- kmeans(train70,3)
-
+train60.scaled.k3 <- kmeans(train60.scaled,3)
+train70.scaled.k3 <- kmeans(train70.scaled,3)
 
 bfn.scaled.k5 <- kmeans(bfn.scaled,5)
-train50.scaled.k5<- kmeans(train50,5)
-train60.scaled.k5<- kmeans(train60,5)
-train70.scaled.k5<- kmeans(train70,5)
+train50.scaled.k5<- kmeans(train50.scaled,5)
+train60.scaled.k5<- kmeans(train60.scaled,5)
+train70.scaled.k5<- kmeans(train70.scaled,5)
 
 bfn.scaled.k7 <- kmeans(bfn.scaled,7)
-train50.scaled.k7<- kmeans(train50,7)
-train60.scaled.k7<- kmeans(train60,7)
-train70.scaled.k7<- kmeans(train70,7)
+train50.scaled.k7<- kmeans(train50.scaled,7)
+train60.scaled.k7<- kmeans(train60.scaled,7)
+train70.scaled.k7<- kmeans(train70.scaled,7)
 
 bfn.scaled.k3
 train50.scaled.k3
@@ -324,47 +324,45 @@ train70.scaled.k7$tot.withinss
 # Knn predicts what the cluster labels for autoclean.test 
 # should be given training set and classification labels 
 bf5050.knn3 <- knn(train50.scaled,test50.scaled,train50.scaled.k3$cluster,k=3)
-
 bf6040.knn3 <- knn(train60.scaled,test40.scaled,train60.scaled.k3$cluster,k=3)
 bf7030.knn3 <- knn(train70.scaled,test30.scaled,train70.scaled.k3$cluster,k=3)
 
-bf5050.knn5 <- knn(train50.scaled,test50.scaled,train50.scaled.k3$cluster,k=5)
-bf6040.knn5 <- knn(train60.scaled,test40.scaled,train60.scaled.k3$cluster,k=5)
-bf7030.knn5 <- knn(train70.scaled,test30.scaled,train70.scaled.k3$cluster,k=5)
+bf5050.knn5 <- knn(train50.scaled,test50.scaled,train50.scaled.k5$cluster,k=5)
+bf6040.knn5 <- knn(train60.scaled,test40.scaled,train60.scaled.k5$cluster,k=5)
+bf7030.knn5 <- knn(train70.scaled,test30.scaled,train70.scaled.k5$cluster,k=5)
 
-bf5050.knn7 <- knn(train50.scaled,test50.scaled,train50.scaled.k3$cluster,k=7)
-bf6040.knn7 <- knn(train60.scaled,test40.scaled,train60.scaled.k3$cluster,k=7)
-bf7030.knn7 <- knn(train70.scaled,test30.scaled,train70.scaled.k3$cluster,k=7)
+bf5050.knn7 <- knn(train50.scaled,test50.scaled,train50.scaled.k7$cluster,k=7)
+bf6040.knn7 <- knn(train60.scaled,test40.scaled,train60.scaled.k7$cluster,k=7)
+bf7030.knn7 <- knn(train70.scaled,test30.scaled,train70.scaled.k7$cluster,k=7)
 
 # Compare K Nearest neighbor against test set 
 # Apply kmeans to each test set to get classification labels 
-test50.scaled.k3<- kmeans(test50,3)
+test50.scaled.k3<- kmeans(test50.scaled,3)
 test50.scaled.k3$cluster
 
-test40.scaled.k3<- kmeans(test40,3)
+test40.scaled.k3<- kmeans(test40.scaled,3)
 test40.scaled.k3$cluster
 
-test30.scaled.k3<- kmeans(test30,3)
+test30.scaled.k3<- kmeans(test30.scaled,3)
 test30.scaled.k3$cluster
 
-test50.scaled.k5<- kmeans(test50,5)
+test50.scaled.k5<- kmeans(test50.scaled,5)
 test50.scaled.k5$cluster
 
-test40.scaled.k5<- kmeans(test40,5)
+test40.scaled.k5<- kmeans(test40.scaled,5)
 test40.scaled.k5$cluster
 
-test30.scaled.k5<- kmeans(test30,5)
+test30.scaled.k5<- kmeans(test30.scaled,5)
 test30.scaled.k5$cluster
 
-test50.scaled.k7<- kmeans(test50,7)
-
+test50.scaled.k7<- kmeans(test50.scaled,7)
 test50.scaled.k7$cluster
 
-test40.scaled.k7<- kmeans(test40,7)
+test40.scaled.k7<- kmeans(test40.scaled,7)
 
 test40.scaled.k7$cluster
 
-test30.scaled.k7<- kmeans(test30,7)
+test30.scaled.k7<- kmeans(test30.scaled,7)
 test30.scaled.k7$cluster
 
 # Evaluating KNN
@@ -391,7 +389,6 @@ CrossTable(x=test30.scaled.k7$cluster,y=bf7030.knn7,prop.chisq=FALSE)
 # iClust 
 # Looks good!
 iclust(train50.scaled,nclusters=3)
-# Nans produced when using 5 or 7 clusters so we will not use that many 
 iclust(train50.scaled,nclusters=5)
 iclust(train50.scaled,nclusters=7)
 
@@ -399,7 +396,6 @@ iclust(train60.scaled,nclusters=3)
 iclust(train60.scaled,nclusters=5)
 iclust(train60.scaled,nclusters=7)
 
-str(train60.scaled)
 iclust(train70.scaled,nclusters=3)
 iclust(train70.scaled,nclusters=5)
 iclust(train70.scaled,nclusters=7)
@@ -411,21 +407,21 @@ iclust(train70.scaled,nclusters=7)
 
 
 # Try hclust 
-hc <- hclust(dist(train60.scaled[sample(nrow(train60.scaled),100),]),"ave")
+hc <- hclust(dist(bfn.scaled[sample(nrow(bfn.scaled),100),]),"ave")
 plot(hc)
 
 
 #Determine # Clusters present: 
 #   -Tough probem, no generic solutions
 #   -Domain knowledge helpful
-#   -Use the NbClust package which has 30 indices
-
-
-# Principal function
+# Principal function on training set 
 train50.scaled.pca <- principal(train50.scaled, nfactors = 2, rotate = "none")
 train60.scaled.pca <- principal(train60.scaled, nfactors = 2, rotate = "none")
 train70.scaled.pca <- principal(train70.scaled, nfactors = 2, rotate = "none")
+# Look at values 
 train50.scaled.pca$values
+train60.scaled.pca$values 
+train70.scaled.pca$values 
 
 bf.prcomp <- prcomp(train50.scaled.pca$values, center = T, scale. = T)
 bf.prcomp
@@ -460,22 +456,23 @@ wssplot <- function(data,nc=15,seed=1234)
 wssplot(train50.scaled,nc=3,seed=1234)
 wssplot(train60.scaled,nc=3,seed=1234)
 wssplot(train70.scaled,nc=3,seed=1234)
-# nc = 3, 2 clusters
+
 wssplot(train50.scaled,nc=5,seed=1234)
 wssplot(train60.scaled,nc=5,seed=1234)
 wssplot(train70.scaled,nc=5,seed=1234)
-# nc = 5, 3 clusters 
+
 wssplot(train50.scaled,nc=7,seed=1234)
 wssplot(train60.scaled,nc=7,seed=1234)
 wssplot(train70.scaled,nc=7,seed=1234)
-# nc = 7, 4 clusters 
+
 
 # Scree plot: Gettting an idea of components 
 bfScree <- scree(bfn.scaled,factors=TRUE)
 bfScree
 
 
-# TO DO: Try Nbclust package on training sets 
+# Try Nbclust package on training sets
+#  Use the NbClust package which has 30 indices to help determine 
 # 50-50 
 result1 <- NbClust(train50.scaled[sample(nrow(train50.scaled),500),],distance="euclidean",min.nc=3,max.nc=7, method="ward.D",index="all")
 result1$All.index
@@ -495,67 +492,60 @@ result3$Best.nc
 result3$All.CriticalValues
 result3$Best.partition
 
-# TO DO: WHAT IS THE FINAL NUMBER OF CLUSTERS TO BE USED??
-# 3 or 4 clusters 
-# TO DO: DECIDE ON NUMBER 
-# 3 
+# We are using 4 clusters based on the k-means, k nearest neighbor and iclust results
 
-# TO DO: Obtain final cluster solution 
+
+# Obtain final cluster solution 
 #   -Perform final clustering with best set of parameters
 #   -There is no optimal solution usually 
 #   -Might help: K-means clustering <- sum of squares distance should be minimized 
 #   total within-cluster sum of squares measures the compactness (i.e. goodness)
 #   of the clustering and we want it to be as small as possible 
 
-# TO DO: PERFORM CLUSTERING ONCE AGAIN ON TESTING SETS WITH 
-# TO DO: FINAL NUMBER OF CLUSTERS 
+# 3 clusters is the final solution based on the analysis above, however based upon previous plots, 3 clusters 
+# more optimally represents our data 
 # kmeans clustering 
 kmeans(test30.scaled,3)
 kmeans(test40.scaled,3)
 kmeans(test50.scaled,3)
+
 # iclust clustering 
-test30.scaled <- na.omit(test30.scaled)
 iclust(test30.scaled,nclusters=3)
-test50.scaled <- na.omit(test50.scaled)
 iclust(test40.scaled,nclusters=3)
 iclust(test50.scaled,nclusters=3)
 
 
 
-# TO DO: Visualize the results 
+# isualize the results 
 #   -Hierarchical clustering usually displayed as a dendrogram
 #   -Partitioning clustering usually displayed as a bivariate cluster plot 
 #   -You may have to select pairs of variables to plot (latter case)
 # USE CLUSPLOT TO VISUALIZE (BELOW)
-clusplot(pam(x=test30[sample(nrow(test30),100),],k=3,metric="euclidean",stand=FALSE))
-clusplot(pam(x=test40[sample(nrow(test40),100),],k=3,metric="euclidean",stand=FALSE))
-clusplot(pam(x=test50[sample(nrow(test40),100),],k=3,metric="euclidean",stand=FALSE))
+clusplot(pam(x=test30.scaled[sample(nrow(test30.scaled),1000),],k=4,metric="manhattan",stand=FALSE),shade=TRUE,color=TRUE,plotchar=FALSE,add=FALSE)
+clusplot(pam(x=test40.scaled[sample(nrow(test40.scaled),1000),],k=4,metric="euclidean",stand=FALSE))
+clusplot(pam(x=test50.scaled[sample(nrow(test50.scaled),1000),],k=4,metric="euclidean",stand=FALSE))
 
-# TO DO: PLOT RESULTS OF CLUSTERING ON TESTING SETS 
 
-#  TO DO: Interpret the clusters 
+
+#  Interpret the clusters 
 #   -Examining the clusters, find what is common and what is not
 #   -Requires domain knowledge 
 #   -Obtain summary statistics 
 #   -If categorical variables, look at modes and/or category distributions 
-# TO DO: EXAMINE STATISTICS / PLOTS OF RESULTS ABOVE, 
-# TO DO: MAKE CHARTS GRAPHS ETC 
+
 
 # There is a relation between Occupation and Gender 
 # in addition to Marital Status and Age. 
 
 
 
-
-
-#  TO DO: Validate the clusters 
+#  Validate the clusters 
 #   -Are these groupings represented in the real world
 #   in some way?
 #   -If a different clustering method was used, would
 #    the same clusters be obtained?
 #   -Try the fpc, clv and clValid packages 
 
-# TO DO: LOOK OVER FINAL RESULTS (ON TESTING SET)
 
 # 4. Try the lm and glm methods to get linear fits for the data. 
 # This will not work on all attributes, so you must determine 
@@ -599,20 +589,9 @@ clusplot(pam(x=test50[sample(nrow(test40),100),],k=3,metric="euclidean",stand=FA
 # line) are smallest.
 
 # combine two data sets into one 
-train50
-test50
 combined5050 <- rbind(train50,test50)
-combined5050
-
-train60
-test40
 combined6040 <- rbind(train60,test40)
-combined6040
-
-train70
-test30
 combined7030 <- rbind(train70,test30)
-combined7030
 # Scale the combined set 
 combined5050.scaled <- as.data.frame(scale(combined5050))
 combined6040.scaled <- as.data.frame(scale(combined6040))
@@ -661,6 +640,7 @@ plot(lm9$fitted.values,lm9$residuals)
 # 5050 set 
 glm1 <- glm(formula = combined5050.scaled$Purchase~combined5050$Age,family=gaussian,data=combined5050.scaled)
 glm1
+
 # 6040 set 
 glm2 <- glm(formula = combined6040.scaled$Purchase~combined6040$Age,family=gaussian,data=combined6040.scaled)
 glm2
@@ -690,8 +670,9 @@ glm9
 
 
 
-# TO DO: You should investigate some of the statistics of the data set 
-# TO DO: (Basically just randomly messing with the data)
+
+
+
 
 # Use pairs to plot stuff 
 # User_ID
